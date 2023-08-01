@@ -51,8 +51,7 @@ public class Ship {
         if (isShipTooCloseFromAnotherOne) {
             throw new Exception("Error! You placed it too close to another one. Try again:");
         }
-        return areCellsOnTheSameAxis && isDistanceBetweenCellsEqualToShipLength &&
-                !isShipTooCloseFromAnotherOne;
+        return true;
     }
 
     public boolean areCellsOnTheSameAxis() {
@@ -127,7 +126,8 @@ public class Ship {
 
     public static void updateShipsAfterHit(List<Ship> ships, Shot shot) {
         BoardCell hitCell = shot.getShotCell();
-        for (Ship ship: ships) {
+        List<Ship> copyOfShips = new ArrayList<>(ships);
+        for (Ship ship: copyOfShips) {
             for (BoardCell boardCell: ship.getShipCells()) {
                 if (boardCell.equals(hitCell)) {
                     ship.setShipUnscathedLength(ship.getShipUnscathedLength() - 1);
@@ -135,6 +135,7 @@ public class Ship {
             }
             if (ship.getShipUnscathedLength() == 0) {
                 removeShipFromShipList(ships, ship);
+                shot.setShipSunk(true);
             }
             if (ships.size() == 0) {
                 GameControlCenter.claimVictory();

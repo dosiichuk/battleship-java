@@ -4,19 +4,24 @@ import battleship.enums.CellType;
 import battleship.enums.ShipType;
 import battleship.enums.ShotType;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class Shot {
     public final Scanner scanner;
     public final Board board;
+    public final Player player;
+    public final List<Player> playerList;
     public BoardCell shotCell;
     public boolean isValidShot = false;
+    public boolean isShipSunk = false;
     public ShotType shotType;
 
-    public Shot(Scanner scanner, Board board) {
+    public Shot(Scanner scanner, Board board, Player player, List<Player> playerList) {
         this.scanner = scanner;
         this.board = board;
-        System.out.println("Take a shot!");
+        this.player = player;
+        this.playerList = playerList;
         while (!this.isValidShot) {
             try {
                 this.shotCell = this.identifyTargetBoardCell();
@@ -53,18 +58,22 @@ public class Shot {
     }
 
     public void processShotAndMarkCell(BoardCell shotCell) {
-        if (shotCell.getCellType().equals(CellType.FOG)) {
+        if (shotCell.getCellType().equals(CellType.FOG) || shotCell.getCellType().equals(CellType.MISS)) {
             shotCell.setCellType(CellType.MISS);
             this.setShotType(ShotType.MISS);
-            this.board.printBoardStatus(true);
-            System.out.println("You missed. Try again:\n");
+//            this.board.printBoardStatus(true);
+            System.out.println("You missed.");
 //            this.board.printBoardStatus(false);
-        } else if (shotCell.getCellType().equals(CellType.SHIP)) {
+        } else if (shotCell.getCellType().equals(CellType.SHIP) || shotCell.getCellType().equals(CellType.HIT)) {
             shotCell.setCellType(CellType.HIT);
             this.setShotType(ShotType.HIT);
-            this.board.printBoardStatus(true);
-            System.out.println("You hit a ship! Try again:\n");
-//            this.board.printBoardStatus(false);
+
+            Ship.updateShipsAfterHit(Player.getOpponent(this.player, this.playerList).getBoard().getShips(), this);
+            if (this.isShipSunk) {
+                System.out.println("You sank a ship!");
+            } else {
+                System.out.println("You hit a ship!");
+            }
         }
     }
 
@@ -110,5 +119,17 @@ public class Shot {
 
     public ShotType getShotType() {
         return shotType;
+    }
+
+    public void setShotCell(BoardCell shotCell) {
+        this.shotCell = shotCell;
+    }
+
+    public void setValidShot(boolean validShot) {
+        isValidShot = validShot;
+    }
+
+    public void setShipSunk(boolean shipSunk) {
+        isShipSunk = shipSunk;
     }
 }
